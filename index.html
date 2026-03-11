@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Проверка текста на обязательные пометки</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1>Проверка текста на обязательные пометки</h1>
+      <p>
+        Загрузите <code>.docx</code>, сервис найдет совпадения по актуальному справочнику
+        и подсветит их в тексте красным.
+      </p>
+      <div class="meta" id="registryMeta">Загрузка реестров…</div>
+    </header>
+
+    <section class="card">
+      <h2>Загрузка документа</h2>
+      <div class="row">
+        <input id="fileInput" type="file" accept=".docx" />
+        <button id="scanBtn" type="button">Проверить</button>
+      </div>
+      <p class="hint">
+        Это полностью статическая версия для GitHub Pages. Она подсвечивает совпадения
+        в браузере. Исходный <code>.docx</code> не переписывается.
+      </p>
+    </section>
+
+    <section class="card hidden" id="summaryCard">
+      <h2>Результат</h2>
+      <div class="stats" id="stats"></div>
+      <div id="matches"></div>
+    </section>
+
+    <section class="card hidden" id="previewCard">
+      <h2>Предпросмотр текста</h2>
+      <p class="hint">
+        Форматирование Word в этом режиме упрощается до текстового предпросмотра,
+        чтобы подсветка работала полностью в браузере.
+      </p>
+      <pre id="preview"></pre>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

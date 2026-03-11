@@ -1,0 +1,113 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #f5f7fb;
+  color: #18212f;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+.hero {
+  margin-bottom: 24px;
+}
+h1 {
+  margin: 0 0 10px;
+  font-size: 36px;
+  line-height: 1.1;
+}
+h2 {
+  margin-top: 0;
+  font-size: 24px;
+}
+.card {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button {
+  background: #18212f;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+input[type=file] {
+  max-width: 100%;
+}
+.meta, .hint {
+  color: #516074;
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stat {
+  background: #eef2f8;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+#matches {
+  display: grid;
+  gap: 10px;
+}
+.match-group {
+  border: 1px solid #e4e8ef;
+  border-radius: 12px;
+  padding: 12px;
+}
+.match-group h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.badge {
+  display: inline-block;
+  background: #f3e8e8;
+  color: #8d1f1f;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  margin-left: 8px;
+}
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+}
+mark.hit {
+  background: #ffd6d6;
+  color: #8f0000;
+  border-radius: 4px;
+  padding: 0 2px;
+}
+.hidden {
+  display: none;
+}
+.error {
+  color: #b00020;
+  font-weight: 600;
+}
+small.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
