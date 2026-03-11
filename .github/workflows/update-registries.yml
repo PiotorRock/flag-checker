@@ -3,7 +3,7 @@ name: update-registries
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "17 */6 * * *"
 
 permissions:
   contents: write
@@ -14,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -29,10 +29,16 @@ jobs:
       - name: Update registries
         run: python scripts/update_registries.py
 
-      - name: Commit changes
+      - name: Commit updated registries
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- data/registries.json; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
           git add data/registries.json
-          git diff --staged --quiet || git commit -m "Update registries"
+          git commit -m "Update registries"
           git push
