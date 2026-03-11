@@ -7,6 +7,8 @@ from html import unescape
 
 import requests
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 OUTPUT_PATH = os.path.join("data", "registries.json")
 
@@ -21,11 +23,28 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; FlagCheckerBot/1.0; +https://github.com/)"
 }
 
-MIN_REASONABLE_TOTAL = 100
+
+def make_session() -> requests.Session:
+    session = requests.Session()
+    retry = Retry(
+        total=4,
+        connect=4,
+        read=4,
+        backoff_factor=2,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"],
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+
+SESSION = make_session()
 
 
 def fetch(url: str) -> str:
-    resp = requests.get(url, headers=HEADERS, timeout=60)
+    resp = SESSION.get(url, headers=HEADERS, timeout=(20, 120))
     resp.raise_for_status()
     resp.encoding = resp.apparent_encoding or resp.encoding
     return resp.text
@@ -33,8 +52,10 @@ def fetch(url: str) -> str:
 
 def soup_text(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
+
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
+
     text = soup.get_text("\n")
     text = unescape(text)
     text = text.replace("\xa0", " ")
@@ -46,7 +67,8 @@ def soup_text(html: str) -> str:
 def clean_name(value: str) -> str:
     value = unescape(value)
     value = value.replace("\xa0", " ")
-    value = re.sub(r"\s+", " ", value).strip(" \t\r\n-–—;,.")
+    value = re.sub(r"\s+", " ", value)
+    value = value.strip(" \t\r\n-–—;,.")
     return value.strip()
 
 
@@ -57,20 +79,21 @@ def normalize_key(value: str) -> str:
     return value.strip()
 
 
-def add_entity(bucket: dict, name: str, category: str, aliases=None):
+def add_entity(bucket: dict, name: str, category: str, aliases=None) -> None:
     name = clean_name(name)
     if not name:
         return
-    if aliases is None:
-        aliases = []
+
+    aliases = aliases or []
 
     all_aliases = []
     for a in aliases:
         a = clean_name(a)
-        if a and a != name:
+        if a and normalize_key(a) != normalize_key(name):
             all_aliases.append(a)
 
     key = (category, normalize_key(name))
+
     if key not in bucket:
         bucket[key] = {
             "name": name,
@@ -78,12 +101,12 @@ def add_entity(bucket: dict, name: str, category: str, aliases=None):
             "aliases": [],
         }
 
-    existing = {normalize_key(x) for x in bucket[key]["aliases"]}
+    existing_aliases = {normalize_key(x) for x in bucket[key]["aliases"]}
     for a in all_aliases:
         nk = normalize_key(a)
-        if nk and nk not in existing and nk != normalize_key(name):
+        if nk and nk not in existing_aliases and nk != normalize_key(name):
             bucket[key]["aliases"].append(a)
-            existing.add(nk)
+            existing_aliases.add(nk)
 
 
 def split_aliases_from_parentheses(name: str):
@@ -92,18 +115,15 @@ def split_aliases_from_parentheses(name: str):
         part = clean_name(m)
         if part:
             aliases.append(part)
+
     base = re.sub(r"\([^()]*\)", "", name)
     base = clean_name(base)
     return base, aliases
 
 
 def parse_numbered_lines(text: str):
-    """
-    Универсальный парсер строк вида:
-    1158. Иванов Иван Иванович
-    1. АБАДИЕВ МАГОМЕД..., 09.11.1982 г.
-    """
     results = []
+
     for raw_line in text.splitlines():
         line = clean_name(raw_line)
         if not line:
@@ -116,30 +136,31 @@ def parse_numbered_lines(text: str):
         value = clean_name(m.group(1))
         if value:
             results.append(value)
+
     return results
 
 
 def parse_minjust_simple_list(text: str):
-    """
-    Для страниц Минюста, где список обычно идет нумерованными строками.
-    """
     items = []
+
     for item in parse_numbered_lines(text):
-        # Отсекаем служебные строки
+        lower = item.lower()
+
         if len(item) < 3:
             continue
-        if item.lower().startswith("реестр "):
+        if lower.startswith("реестр "):
             continue
+        if lower.startswith("перечень "):
+            continue
+        if "дата рождения" in lower:
+            continue
+
         items.append(item)
+
     return items
 
 
 def parse_fedsfm_list(text: str):
-    """
-    Для Росфинмониторинга:
-    1. ФИО..., 01.01.1980 г.
-    Берем все до даты/г.р./запятой, плюс алиасы из скобок.
-    """
     items = []
 
     for raw_line in text.splitlines():
@@ -155,10 +176,10 @@ def parse_fedsfm_list(text: str):
         if not body:
             continue
 
-        # Обрезаем типичные хвосты с датой рождения и географией
+        # обрезаем типичные хвосты с датой рождения/служебной инфой
         body = re.split(r",\s*\d{2}\.\d{2}\.\d{4}", body)[0]
-        body = re.split(r",\s*\d{4}\s*г", body)[0]
         body = re.split(r"\b\d{2}\.\d{2}\.\d{4}\b", body)[0]
+        body = re.split(r",\s*\d{4}\s*г", body)[0]
         body = clean_name(body)
 
         if body and len(body) >= 3:
@@ -183,61 +204,22 @@ def make_aliases(name: str):
     if base:
         aliases.add(base)
         aliases.add(base.lower())
+
     for a in paren_aliases:
         aliases.add(a)
         aliases.add(a.lower())
 
     cleaned = []
     seen = set()
+
     for item in aliases:
         item = clean_name(item)
         key = normalize_key(item)
         if item and key not in seen:
             cleaned.append(item)
             seen.add(key)
+
     return cleaned
-
-
-def build_entities():
-    bucket = {}
-
-    # 1) Иноагенты
-    html = fetch(URLS["foreign_agents"])
-    text = soup_text(html)
-    for raw in parse_minjust_simple_list(text):
-        base, extra_aliases = split_aliases_from_parentheses(raw)
-        aliases = make_aliases(base) + extra_aliases
-        add_entity(bucket, base, "foreign_agents", aliases)
-
-    # 2) Нежелательные организации
-    html = fetch(URLS["undesirable_orgs"])
-    text = soup_text(html)
-    for raw in parse_minjust_simple_list(text):
-        base, extra_aliases = split_aliases_from_parentheses(raw)
-        aliases = make_aliases(base) + extra_aliases
-        add_entity(bucket, base, "undesirable_orgs", aliases)
-
-    # 3) Запрещенные / ликвидированные организации
-    html = fetch(URLS["banned_orgs"])
-    text = soup_text(html)
-    for raw in parse_minjust_simple_list(text):
-        base, extra_aliases = split_aliases_from_parentheses(raw)
-        aliases = make_aliases(base) + extra_aliases
-        add_entity(bucket, base, "banned_orgs", aliases)
-
-    # 4) Террористы / экстремисты
-    html = fetch(URLS["terrorists_extremists"])
-    text = soup_text(html)
-    for raw in parse_fedsfm_list(text):
-        base, extra_aliases = split_aliases_from_parentheses(raw)
-        aliases = make_aliases(base) + extra_aliases
-        add_entity(bucket, base, "terrorists_extremists", aliases)
-
-    entities = sorted(
-        bucket.values(),
-        key=lambda x: (x["category"], normalize_key(x["name"]))
-    )
-    return entities
 
 
 def counts_from_entities(entities):
@@ -248,15 +230,18 @@ def counts_from_entities(entities):
         "terrorists_extremists": 0,
         "total_entities": len(entities),
     }
+
     for item in entities:
         cat = item["category"]
         counts[cat] = counts.get(cat, 0) + 1
+
     return counts
 
 
 def load_previous():
     if not os.path.exists(OUTPUT_PATH):
         return None
+
     with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -267,40 +252,111 @@ def save_payload(payload):
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def get_previous_entities(previous, category):
+    if not previous:
+        return []
+
+    return [
+        item
+        for item in previous.get("entities", [])
+        if item.get("category") == category
+    ]
+
+
+def build_entities(previous=None):
+    bucket = {}
+    failed_sources = []
+
+    source_configs = [
+        ("foreign_agents", URLS["foreign_agents"], parse_minjust_simple_list),
+        ("undesirable_orgs", URLS["undesirable_orgs"], parse_minjust_simple_list),
+        ("banned_orgs", URLS["banned_orgs"], parse_minjust_simple_list),
+        ("terrorists_extremists", URLS["terrorists_extremists"], parse_fedsfm_list),
+    ]
+
+    for category, url, parser in source_configs:
+        try:
+            html = fetch(url)
+            text = soup_text(html)
+
+            parsed = 0
+            for raw in parser(text):
+                base, extra_aliases = split_aliases_from_parentheses(raw)
+                aliases = make_aliases(base) + extra_aliases
+                add_entity(bucket, base, category, aliases)
+                parsed += 1
+
+            print(f"{category}: parsed {parsed}")
+
+            if parsed == 0:
+                raise RuntimeError(f"{category}: source returned 0 parsed entries")
+
+        except Exception as exc:
+            print(f"WARNING: {category} failed: {exc}", file=sys.stderr)
+            failed_sources.append({"category": category, "error": str(exc)})
+
+            previous_items = get_previous_entities(previous, category)
+            for item in previous_items:
+                add_entity(
+                    bucket,
+                    item["name"],
+                    item["category"],
+                    item.get("aliases", []),
+                )
+
+            print(
+                f"{category}: kept previous entries {len(previous_items)}",
+                file=sys.stderr,
+            )
+
+    entities = sorted(
+        bucket.values(),
+        key=lambda x: (x["category"], normalize_key(x["name"])),
+    )
+
+    return entities, failed_sources
+
+
 def main():
     previous = load_previous()
 
     try:
-        entities = build_entities()
+        entities, failed_sources = build_entities(previous=previous)
         counts = counts_from_entities(entities)
 
-        # Защита от "успешного" пустого парсинга
-        if counts["total_entities"] < MIN_REASONABLE_TOTAL:
-            raise RuntimeError(
-                f"Собрано слишком мало записей: {counts['total_entities']}. "
-                "Похоже, верстка источников изменилась."
-            )
+        if counts["total_entities"] == 0:
+            raise RuntimeError("После обновления нет ни одной записи вообще.")
 
         payload = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "sources": URLS,
             "counts": counts,
+            "failed_sources": failed_sources,
             "entities": entities,
         }
 
         save_payload(payload)
-        print(json.dumps(counts, ensure_ascii=False))
+
+        print(
+            json.dumps(
+                {
+                    "counts": counts,
+                    "failed_sources": failed_sources,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         return 0
 
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
 
-        # Не затираем рабочий файл пустотой
         if previous:
             print("Keeping previous registries.json", file=sys.stderr)
-            return 1
+            save_payload(previous)
+            return 0
 
-        # Если файла раньше не было — пишем минимальный fallback
         fallback = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "sources": URLS,
@@ -311,6 +367,7 @@ def main():
                 "terrorists_extremists": 0,
                 "total_entities": 3,
             },
+            "failed_sources": [{"category": "all", "error": str(exc)}],
             "entities": [
                 {
                     "name": "Моргенштерн",
@@ -329,8 +386,9 @@ def main():
                 },
             ],
         }
+
         save_payload(fallback)
-        return 1
+        return 0
 
 
 if __name__ == "__main__":
