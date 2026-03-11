@@ -1,17 +1,33 @@
 {
-  "generated_at": "2026-03-11T13:43:58.253668+00:00",
+  "generated_at": "2026-03-11T13:43:58+00:00",
   "sources": {
-    "foreign_agents": "https://minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/",
-    "undesirable_orgs": "https://minjust.gov.ru/ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/",
-    "banned_orgs": "https://minjust.gov.ru/ru/documents/7822/",
-    "terrorists_extremists": "https://www.fedsfm.ru/documents/terrorists-catalog-portal-act"
+    "foreign_agents": "manual",
+    "undesirable_orgs": "manual",
+    "banned_orgs": "manual",
+    "terrorists_extremists": "manual"
   },
   "counts": {
-    "foreign_agents": 0,
-    "undesirable_orgs": 0,
+    "foreign_agents": 2,
+    "undesirable_orgs": 1,
     "banned_orgs": 0,
     "terrorists_extremists": 0,
-    "total_entities": 0
+    "total_entities": 3
   },
-  "entities": []
+  "entities": [
+    {
+      "name": "Моргенштерн",
+      "category": "foreign_agents",
+      "aliases": ["morgenstern", "Morgenstern"]
+    },
+    {
+      "name": "Алишер Моргенштерн",
+      "category": "foreign_agents",
+      "aliases": []
+    },
+    {
+      "name": "FREE RUSSIA FOUNDATION",
+      "category": "undesirable_orgs",
+      "aliases": []
+    }
+  ]
 }
