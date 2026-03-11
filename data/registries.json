@@ -1,0 +1,56 @@
+{
+  "generated_at": "1970-01-01T00:00:00+00:00",
+  "sources": {
+    "foreign_agents": "https://minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/",
+    "terrorists_extremists": "https://www.fedsfm.ru/documents/terrorists-catalog-portal-act",
+    "undesirable_orgs": "https://minjust.gov.ru/ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/",
+    "banned_orgs": "https://minjust.gov.ru/ru/documents/7822/"
+  },
+  "counts": {
+    "foreign_agents": 2,
+    "terrorists_extremists": 1,
+    "undesirable_orgs": 1,
+    "banned_orgs": 1,
+    "total_entities": 5
+  },
+  "entities": [
+    {
+      "name": "Кричевская Вера Ефимовна",
+      "category": "foreign_agents",
+      "variants": [
+        "Кричевская Вера Ефимовна"
+      ]
+    },
+    {
+      "name": "Иванов Александр Игнатьевич",
+      "category": "foreign_agents",
+      "variants": [
+        "Иванов Александр Игнатьевич"
+      ]
+    },
+    {
+      "name": "FREE RUSSIA FOUNDATION",
+      "category": "terrorists_extremists",
+      "variants": [
+        "FREE RUSSIA FOUNDATION",
+        "Free Russia Foundation"
+      ]
+    },
+    {
+      "name": "Open Russia Civic Movement, Open Russia",
+      "category": "undesirable_orgs",
+      "variants": [
+        "Open Russia Civic Movement",
+        "Open Russia"
+      ]
+    },
+    {
+      "name": "Межрегиональная общественная организация «Национал-большевистская партия»",
+      "category": "banned_orgs",
+      "variants": [
+        "Межрегиональная общественная организация Национал-большевистская партия",
+        "Национал-большевистская партия"
+      ]
+    }
+  ]
+}
