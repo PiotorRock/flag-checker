@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-15T19:04:41.594832+00:00",
+  "generated_at": "2026-03-16T03:40:04.523893+00:00",
   "sources": {
     "foreign_agents": "https://minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/",
     "undesirable_orgs": "https://minjust.gov.ru/ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/",
@@ -16,15 +16,15 @@
   "failed_sources": [
     {
       "category": "foreign_agents",
-      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/pages/reestr-inostryannykh-agentov/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f413a68cf80>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
+      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/pages/reestr-inostryannykh-agentov/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f5398630a70>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
     },
     {
       "category": "undesirable_orgs",
-      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f413ae2a870>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
+      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f539a0af320>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
     },
     {
       "category": "banned_orgs",
-      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/documents/7822/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f413a68da60>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
+      "error": "HTTPSConnectionPool(host='minjust.gov.ru', port=443): Max retries exceeded with url: /ru/documents/7822/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='minjust.gov.ru', port=443) at 0x7f5398631520>, 'Connection to minjust.gov.ru timed out. (connect timeout=20)'))"
     },
     {
       "category": "terrorists_extremists",
